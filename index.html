@@ -741,7 +741,7 @@ input[type="checkbox"] {
         <div class="topbar-sub" id="page-sub">Selecione as notas e adicione ao carrinho para liberar</div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-secondary btn-sm" onclick="syncSheets()">🔄 Sincronizar</button>
+        <button class="btn btn-secondary btn-sm" onclick="syncSheets()">🔄 Importar Notas</button>
         <div class="cart-btn-container" id="cart-btn-wrap" style="display:none">
           <button class="btn btn-primary" onclick="openCart()" id="cart-toggle-btn" style="position:relative">
             🛒 Carrinho <span id="cart-count-badge" class="cart-count-badge" style="display:none">0</span>
@@ -1100,10 +1100,8 @@ input[type="checkbox"] {
                 style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"
                 value="Página1">
             </div>
-            <div class="field-group" style="margin-bottom:14px">
-              <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">API Key Google Sheets <span style="font-weight:400;text-transform:none;letter-spacing:0">(leitura)</span></label>
-              <input type="password" id="sheets-key" placeholder="AIzaSy..."
-                style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:monospace">
+            <div style="display:none">
+              <input type="hidden" id="sheets-key" value="">
             </div>
             <div class="field-group" style="margin-bottom:18px">
               <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">URL do Webhook <span style="font-weight:400;text-transform:none;letter-spacing:0">(escrita — Apps Script)</span></label>
@@ -1112,8 +1110,8 @@ input[type="checkbox"] {
               <div style="font-size:11px;color:var(--gray-400);margin-top:4px">Necessário para atualizar status para LIBERADO no Sheets. Veja o arquivo <strong>google-apps-script-webhook.js</strong>.</div>
             </div>
             <div style="display:flex;gap:10px">
-              <button class="btn btn-primary" onclick="testSheets()">🔌 Testar Conexão</button>
-              <button class="btn btn-success" onclick="syncSheets()">🔄 Sincronizar Agora</button>
+              <button class="btn btn-primary" onclick="testSheets()">🔌 Testar Webhook</button>
+              <button class="btn btn-success" onclick="syncSheets()">🔄 Importar Notas do Sheets</button>
             </div>
             <div id="sheets-status" style="margin-top:12px;font-size:13px;color:var(--gray-500)"></div>
           </div>
@@ -2036,58 +2034,48 @@ async function syncSheets() {
   const cfg = getSheetsConfig();
   const statusEl = document.getElementById('sheets-status');
 
-  if (!cfg.id || !cfg.key) {
-    toast('Preencha ID da planilha e API Key antes de sincronizar', 'error');
-    if (statusEl) statusEl.innerHTML = '<span style="color:#dc2626">Preencha ID e API Key.</span>';
+  if (!cfg.webhook) {
+    toast('Configure a URL do Webhook primeiro!', 'error');
+    if (statusEl) statusEl.innerHTML = '<span style="color:#dc2626">URL do Webhook não configurada.</span>';
     return;
   }
 
-  toast('Buscando dados do Google Sheets…', 'info');
-  if (statusEl) statusEl.innerHTML = '<span style="color:#3b82f6">Buscando dados…</span>';
+  toast('Buscando dados via Webhook…', 'info');
+  if (statusEl) statusEl.innerHTML = '<span style="color:#3b82f6">Conectando ao Apps Script…</span>';
 
-  // Se webhook configurado, pode usar para leitura também
-  let fetchUrl, fetchOpts = {};
-  if (cfg.webhook) {
-    fetchUrl = `${cfg.webhook}?action=read&tab=${encodeURIComponent(cfg.tab)}`;
-  } else {
-    const range = encodeURIComponent(`${cfg.tab}!A2:O`);
-    fetchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.id}/values/${range}?key=${cfg.key}`;
-  }
+  const tab = cfg.tab || 'Página1';
+  const fetchUrl = `${cfg.webhook}?action=read&tab=${encodeURIComponent(tab)}`;
 
   try {
-    const res = await fetch(fetchUrl, fetchOpts);
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
-    }
+    const res = await fetch(fetchUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const rows = data.values || [];
+    if (data.error) throw new Error(data.error);
 
+    const rows = data.values || [];
     if (rows.length === 0) {
-      toast('Planilha vazia ou sem dados na aba configurada', 'error');
-      if (statusEl) statusEl.innerHTML = '<span style="color:#dc2626">Nenhuma linha encontrada.</span>';
+      toast('Nenhum dado encontrado na planilha', 'error');
+      if (statusEl) statusEl.innerHTML = '<span style="color:#dc2626">Nenhuma linha encontrada na aba.</span>';
       return;
     }
 
-    // Mapeia colunas A–O → campos internos
-    // Guarda _sheetRow para write-back (header=linha1, dados a partir da linha 2)
     const novasNotas = rows.map((r, i) => ({
       _sheetRow:   i + 2,
-      unidade:     r[0]  || '',
-      empenho:     r[1]  || '',
-      sub:         r[2]  || '',
-      valor:       parseFloat((r[3]||'0').replace(/[R$\s.]/g,'').replace(',','.')) || 0,
-      dtEntrada:   r[4]  || '',
-      credor:      r[5]  || '',
-      objeto:      r[6]  || '',
-      status:      (r[7] || 'ATIVO').toUpperCase(),
-      dtSaida:     r[8]  || '',
-      setor:       r[9]  || '',
-      motivo:      r[10] || '',
-      competencia: r[11] || '',
-      cod:         r[12] || '',
-      elemento:    r[13] || '',
-      fonte:       r[14] || '',
+      unidade:     (r[0]  || '').toString().trim(),
+      empenho:     (r[1]  || '').toString().trim(),
+      sub:         (r[2]  || '').toString().trim(),
+      valor:       parseFloat((r[3]||'0').toString().replace(/[R$\s.]/g,'').replace(',','.')) || 0,
+      dtEntrada:   (r[4]  || '').toString().trim(),
+      credor:      (r[5]  || '').toString().trim(),
+      objeto:      (r[6]  || '').toString().trim(),
+      status:      ((r[7] || 'ATIVO').toString().trim()).toUpperCase(),
+      dtSaida:     (r[8]  || '').toString().trim(),
+      setor:       (r[9]  || '').toString().trim(),
+      motivo:      (r[10] || '').toString().trim(),
+      competencia: (r[11] || '').toString().trim(),
+      cod:         (r[12] || '').toString().trim(),
+      elemento:    (r[13] || '').toString().trim(),
+      fonte:       (r[14] || '').toString().trim(),
     }));
 
     notas = novasNotas;
@@ -2098,14 +2086,17 @@ async function syncSheets() {
     updateStats();
 
     const atv = notas.filter(n => n.status === 'ATIVO').length;
-    toast(`${rows.length} notas importadas — ${atv} ativas`, 'success');
+    toast(`✅ ${rows.length} notas carregadas — ${atv} ativas`, 'success');
     if (statusEl) statusEl.innerHTML =
-      `<span style="color:var(--green-600)">Sincronizado em ${new Date().toLocaleTimeString('pt-BR')} — ${rows.length} notas (${atv} ativas).</span>`;
+      `<span style="color:var(--green-600)">✅ Sincronizado em ${new Date().toLocaleTimeString('pt-BR')} — ${rows.length} notas (${atv} ativas).</span>`;
 
   } catch (e) {
     console.error(e);
-    toast(`Erro ao buscar planilha: ${e.message}`, 'error');
-    if (statusEl) statusEl.innerHTML = `<span style="color:#dc2626">${e.message}</span>`;
+    const msg = (e.message.includes('Failed to fetch') || e.message.includes('NetworkError'))
+      ? 'Erro de CORS — no Apps Script, certifique-se que a implantação permite "Qualquer pessoa"'
+      : e.message;
+    toast(`Erro: ${msg}`, 'error');
+    if (statusEl) statusEl.innerHTML = `<span style="color:#dc2626">❌ ${msg}</span>`;
   }
 }
 
@@ -2118,7 +2109,7 @@ async function updateSheetsRow(nota, statusValue, dataSaida) {
   const row = nota._sheetRow;
   if (!row) return; // nota local, sem linha no Sheets
 
-  // Estratégia 1: Webhook Apps Script
+  // Usa webhook Apps Script (única estratégia — sem API Key)
   if (cfg.webhook) {
     try {
       const res = await fetch(cfg.webhook, {
@@ -2165,26 +2156,33 @@ async function updateSheetsRow(nota, statusValue, dataSaida) {
   }
 }
 
-// ── TEST CONNECTION ──────────────────────────
+// ── TEST CONNECTION via webhook ──────────────────────────
 async function testSheets() {
   saveSheetsConfig();
   const cfg = getSheetsConfig();
   const el = document.getElementById('sheets-status');
-  if (!cfg.id || !cfg.key) {
-    if(el) el.innerHTML = '<span style="color:#dc2626">Preencha o ID e a API Key primeiro.</span>';
+  if (!cfg.webhook) {
+    if(el) el.innerHTML = '<span style="color:#dc2626">Cole a URL do Webhook primeiro.</span>';
+    toast('URL do Webhook não configurada!', 'error');
     return;
   }
-  if(el) el.innerHTML = '<span style="color:#3b82f6">Testando conexão…</span>';
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.id}?key=${cfg.key}&fields=properties.title`;
+  if(el) el.innerHTML = '<span style="color:#3b82f6">Testando conexão com Apps Script…</span>';
+  const tab = cfg.tab || 'Página1';
+  const url = `${cfg.webhook}?action=read&tab=${encodeURIComponent(tab)}`;
   try {
     const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
-    if(el) el.innerHTML = `<span style="color:var(--green-600)">Conectado: <strong>${data.properties?.title}</strong></span>`;
-    toast('Conexão com Google Sheets OK!', 'success');
+    if (data.error) throw new Error(data.error);
+    const count = (data.values || []).length;
+    if(el) el.innerHTML = `<span style="color:var(--green-600)">✅ Conexão OK! ${count} linhas encontradas na aba <strong>${tab}</strong>.</span>`;
+    toast(`✅ Conexão OK — ${count} notas encontradas!`, 'success');
   } catch(e) {
-    if(el) el.innerHTML = `<span style="color:#dc2626">${e.message}</span>`;
-    toast('Falha na conexão: ' + e.message, 'error');
+    const msg = (e.message.includes('Failed to fetch') || e.message.includes('NetworkError'))
+      ? 'CORS bloqueado — verifique a implantação do Apps Script (deve ser "Qualquer pessoa")'
+      : e.message;
+    if(el) el.innerHTML = `<span style="color:#dc2626">❌ ${msg}</span>`;
+    toast('Falha: ' + msg, 'error');
   }
 }
 
