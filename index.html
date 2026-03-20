@@ -1,0 +1,2270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Liberação de Notas — Tesouraria</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-200: #bbf7d0;
+  --green-400: #4ade80;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --green-800: #166534;
+  --green-900: #14532d;
+  --green-950: #052e16;
+  --white: #ffffff;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,.15);
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════ LOGIN ══════════════════════ */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--green-950) 0%, var(--green-800) 40%, var(--green-600) 100%);
+  position: relative;
+  overflow: hidden;
+}
+#login-screen::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(34,197,94,.18) 0%, transparent 70%);
+  top: -100px; right: -100px;
+  animation: pulse-bg 4s ease-in-out infinite;
+}
+#login-screen::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,222,128,.12) 0%, transparent 70%);
+  bottom: -80px; left: -80px;
+  animation: pulse-bg 5s ease-in-out infinite 1s;
+}
+@keyframes pulse-bg { 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.1);opacity:1} }
+
+.login-card {
+  background: white;
+  border-radius: 20px;
+  padding: 48px 40px;
+  width: 420px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  z-index: 1;
+  animation: slide-up .5s ease;
+}
+@keyframes slide-up { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.login-logo-icon {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.login-logo-text h1 { font-size: 20px; font-weight: 700; color: var(--gray-900); }
+.login-logo-text p { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+
+.login-card h2 { font-size: 22px; font-weight: 600; color: var(--gray-800); margin-bottom: 6px; }
+.login-card p.subtitle { font-size: 14px; color: var(--gray-500); margin-bottom: 28px; }
+
+.field-group { margin-bottom: 18px; }
+.field-group label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 6px; }
+.field-group input, .field-group select {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 14px; font-family: inherit;
+  color: var(--gray-800);
+  transition: border-color .2s, box-shadow .2s;
+  background: var(--gray-50);
+}
+.field-group input:focus, .field-group select:focus {
+  outline: none;
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+  background: white;
+}
+
+.btn-login {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  color: white; border: none;
+  border-radius: var(--radius);
+  font-size: 15px; font-weight: 600; font-family: inherit;
+  cursor: pointer;
+  transition: all .2s;
+  margin-top: 8px;
+  letter-spacing: .3px;
+}
+.btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(34,197,94,.35); }
+.btn-login:active { transform: translateY(0); }
+
+.login-hint {
+  margin-top: 20px;
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 12px; color: var(--green-700);
+}
+.login-hint strong { display: block; margin-bottom: 4px; color: var(--green-800); }
+
+/* ══════════════════════ APP SHELL ══════════════════════ */
+#app { display: none; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: 240px;
+  background: linear-gradient(180deg, var(--green-950) 0%, var(--green-900) 100%);
+  color: white;
+  display: flex; flex-direction: column;
+  z-index: 100;
+  transition: transform .3s ease;
+}
+.sidebar-header {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.sidebar-brand { display: flex; align-items: center; gap: 10px; }
+.sidebar-brand-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--green-400), var(--green-600));
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+.sidebar-brand-text { font-size: 14px; font-weight: 600; letter-spacing: .3px; }
+.sidebar-brand-sub { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 1px; }
+
+.sidebar-user {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600;
+}
+.sidebar-user-info { flex: 1; }
+.sidebar-user-name { font-size: 13px; font-weight: 500; }
+.sidebar-user-role { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 1px; }
+.sidebar-role-badge {
+  background: rgba(34,197,94,.2);
+  color: var(--green-300);
+  font-size: 10px; font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+.sidebar-section-title {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.35);
+  padding: 8px 10px 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s;
+  font-size: 13.5px;
+  color: rgba(255,255,255,.7);
+  margin-bottom: 2px;
+  user-select: none;
+}
+.nav-item:hover { background: rgba(255,255,255,.08); color: white; }
+.nav-item.active { background: rgba(34,197,94,.2); color: var(--green-300); font-weight: 500; }
+.nav-item .nav-icon { width: 18px; text-align: center; font-size: 15px; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--green-500);
+  color: white;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  min-width: 20px; text-align: center;
+}
+
+.sidebar-footer {
+  padding: 14px 10px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.btn-logout {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,.5);
+  font-size: 13px; font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-logout:hover { background: rgba(239,68,68,.15); color: #fca5a5; }
+
+/* MAIN CONTENT */
+.main {
+  margin-left: 240px;
+  min-height: 100vh;
+  background: var(--gray-50);
+}
+.topbar {
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 16px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-title { font-size: 18px; font-weight: 600; color: var(--gray-900); }
+.topbar-sub { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+/* PAGES */
+.page { display: none; padding: 28px; animation: fade-in .3s ease; }
+.page.active { display: block; }
+@keyframes fade-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* CARDS */
+.card {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+}
+.card-header {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  display: flex; align-items: center; gap: 10px;
+}
+.card-title { font-size: 15px; font-weight: 600; color: var(--gray-800); }
+.card-body { padding: 20px; }
+
+/* STAT CARDS */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+  transition: transform .2s, box-shadow .2s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-label { font-size: 12px; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.stat-value { font-size: 26px; font-weight: 700; color: var(--gray-900); line-height: 1; }
+.stat-value.green { color: var(--green-600); }
+.stat-sub { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+.stat-icon { font-size: 24px; float: right; margin-top: -4px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 13.5px; font-weight: 500; font-family: inherit;
+  cursor: pointer; border: none;
+  transition: all .15s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--green-600); color: white; }
+.btn-primary:hover { background: var(--green-700); box-shadow: 0 4px 12px rgba(22,163,74,.3); }
+.btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-200); }
+.btn-secondary:hover { background: var(--gray-200); }
+.btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-success { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-200); }
+.btn-success:hover { background: var(--green-100); }
+.btn-sm { padding: 6px 12px; font-size: 12.5px; }
+.btn-icon { padding: 7px 10px; }
+
+/* BADGES */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11.5px; font-weight: 600;
+  white-space: nowrap;
+}
+.badge-green { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-200); }
+.badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-orange { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.badge-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.badge-gray { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
+.badge-dot::before { content: '●'; font-size: 8px; }
+
+/* TABLE */
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: var(--gray-50);
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 11.5px; font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase; letter-spacing: .5px;
+  border-bottom: 1px solid var(--gray-200);
+  white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: background .1s;
+}
+tbody tr:hover { background: var(--gray-50); }
+tbody td { padding: 11px 14px; color: var(--gray-700); vertical-align: middle; }
+tbody td .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+/* TOOLBAR */
+.toolbar {
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  flex: 1; min-width: 200px;
+}
+.search-box input {
+  border: none; outline: none;
+  font-size: 13.5px; font-family: inherit;
+  color: var(--gray-700); flex: 1;
+  background: transparent;
+}
+.filter-select {
+  padding: 9px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 13px; font-family: inherit;
+  color: var(--gray-700);
+  background: white; cursor: pointer;
+}
+.filter-select:focus { outline: 2px solid var(--green-500); }
+
+/* CHECKBOX */
+.checkbox-cell { width: 40px; }
+input[type="checkbox"] {
+  width: 16px; height: 16px;
+  accent-color: var(--green-600);
+  cursor: pointer;
+}
+
+/* CART PANEL */
+#cart-panel {
+  position: fixed; right: 0; top: 0; bottom: 0;
+  width: 380px;
+  background: white;
+  border-left: 1px solid var(--gray-200);
+  box-shadow: -4px 0 20px rgba(0,0,0,.08);
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  animation: slide-in .25s ease;
+}
+@keyframes slide-in { from{transform:translateX(100%)} to{transform:translateX(0)} }
+#cart-panel.open { display: flex; }
+.cart-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cart-header h3 { font-size: 16px; font-weight: 600; }
+.cart-close {
+  width: 30px; height: 30px;
+  border-radius: 50%; border: none;
+  background: var(--gray-100);
+  cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.cart-close:hover { background: var(--gray-200); }
+.cart-items { flex: 1; overflow-y: auto; padding: 16px; }
+.cart-item {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 10px;
+  position: relative;
+  animation: cart-in .2s ease;
+}
+@keyframes cart-in { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+.cart-item-top { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+.cart-item-name { font-size: 12px; font-weight: 600; color: var(--gray-800); flex: 1; }
+.cart-item-value { font-size: 13px; font-weight: 700; color: var(--green-600); white-space: nowrap; }
+.cart-item-meta { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+.cart-remove {
+  position: absolute; top: 8px; right: 8px;
+  background: none; border: none; cursor: pointer;
+  color: var(--gray-400); font-size: 14px; line-height: 1;
+  padding: 2px 6px; border-radius: 4px;
+  transition: all .15s;
+}
+.cart-remove:hover { background: #fef2f2; color: #dc2626; }
+.cart-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--gray-200);
+  background: var(--gray-50);
+}
+.cart-total {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.cart-total-label { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+.cart-total-value { font-size: 20px; font-weight: 700; color: var(--green-600); }
+.cart-count-badge {
+  position: absolute; top: -8px; right: -8px;
+  background: var(--green-500);
+  color: white; width: 20px; height: 20px;
+  border-radius: 50%; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  animation: bounce .3s ease;
+}
+@keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+.cart-btn-container { position: relative; display: inline-block; }
+
+/* PRINT PROTOCOL */
+#print-area { display: none; }
+@media print {
+  body > *:not(#print-area) { display: none !important; }
+  #print-area {
+    display: block !important;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  .print-header { text-align: center; margin-bottom: 24px; }
+  .print-header h1 { font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
+  .print-header p { font-size: 12px; color: #555; }
+  .print-protocol { font-size: 13px; margin-bottom: 16px; }
+  .print-protocol strong { font-size: 16px; }
+  .print-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .print-table th { background: #f0fdf4; padding: 8px 10px; text-align: left; border: 1px solid #d1d5db; font-size: 11px; text-transform: uppercase; }
+  .print-table td { padding: 8px 10px; border: 1px solid #e5e7eb; }
+  .print-table tr:nth-child(even) td { background: #f9fafb; }
+  .print-total { margin-top: 12px; text-align: right; font-weight: bold; font-size: 14px; }
+  .print-footer { margin-top: 40px; display: flex; justify-content: space-between; }
+  .print-sign { width: 45%; border-top: 1px solid #374151; padding-top: 6px; font-size: 11px; text-align: center; }
+}
+
+/* CHARTS */
+.chart-container { position: relative; height: 280px; }
+.chart-bar-wrapper { display: flex; flex-direction: column; gap: 10px; padding: 8px 0; }
+.chart-bar-row { display: flex; align-items: center; gap: 10px; }
+.chart-bar-label { font-size: 11px; color: var(--gray-500); width: 180px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+.chart-bar-track { flex: 1; background: var(--gray-100); border-radius: 4px; height: 24px; overflow: hidden; }
+.chart-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--green-500), var(--green-400));
+  display: flex; align-items: center; padding-left: 8px;
+  font-size: 11px; font-weight: 600; color: white;
+  min-width: 50px;
+  transition: width .8s ease;
+}
+.chart-bar-value { font-size: 11.5px; color: var(--gray-600); font-family: 'JetBrains Mono', monospace; }
+
+/* PIE / DONUT (SVG) */
+.donut-wrapper { display: flex; align-items: center; gap: 24px; }
+.donut-legend { flex: 1; }
+.legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12.5px; color: var(--gray-700); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 500;
+  display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: white;
+  border-radius: var(--radius-lg);
+  width: 560px; max-width: 95vw;
+  box-shadow: var(--shadow-lg);
+  animation: modal-in .2s ease;
+}
+@keyframes modal-in { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--gray-100);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--gray-100); display: flex; justify-content: flex-end; gap: 10px; }
+
+/* TOAST */
+#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--gray-900);
+  color: white;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  box-shadow: var(--shadow-md);
+  display: flex; align-items: center; gap: 10px;
+  min-width: 260px;
+  animation: toast-in .25s ease;
+}
+@keyframes toast-in { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+.toast.success { border-left: 4px solid var(--green-500); }
+.toast.error { border-left: 4px solid #ef4444; }
+.toast.info { border-left: 4px solid #3b82f6; }
+
+/* FLOATING CART BUTTON */
+#float-cart-btn {
+  position: fixed; bottom: 28px; right: 28px;
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  color: white; border: none;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(34,197,94,.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 150;
+  transition: all .2s;
+  display: none;
+}
+#float-cart-btn:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(34,197,94,.5); }
+
+/* PROTOCOL PREVIEW */
+.protocol-preview {
+  border: 1.5px dashed var(--gray-300);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.protocol-header-bar {
+  background: var(--green-600);
+  color: white;
+  padding: 14px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.protocol-items-table { padding: 12px; }
+.protocol-footer-bar {
+  background: var(--gray-50);
+  border-top: 1px solid var(--gray-200);
+  padding: 12px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+/* GRID HELPERS */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.mt-4 { margin-top: 16px; }
+.mt-6 { margin-top: 24px; }
+.mb-4 { margin-bottom: 16px; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.empty-state { text-align: center; padding: 48px 20px; color: var(--gray-400); }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ADMIN only elements */
+.admin-only { display: none; }
+.role-admin .admin-only { display: block; }
+.role-admin .nav-admin { display: flex; }
+.nav-admin { display: none; }
+
+/* Tooltip */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+  background: var(--gray-900); color: white;
+  font-size: 11px; padding: 4px 8px; border-radius: 5px;
+  white-space: nowrap; pointer-events: none; z-index: 100;
+}
+
+/* SCROLL */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+
+/* RESPONSIVE */
+@media(max-width: 900px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🏛️</div>
+      <div class="login-logo-text">
+        <h1>TesourariaPro</h1>
+        <p>Sistema de Liberação de Notas</p>
+      </div>
+    </div>
+    <h2>Bem-vindo de volta</h2>
+    <p class="subtitle">Faça login para acessar o sistema</p>
+
+    <div class="field-group">
+      <label>Perfil de Acesso</label>
+      <select id="login-role">
+        <option value="admin">Administrador</option>
+        <option value="liberador">Liberador de Notas</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label>Usuário</label>
+      <input type="text" id="login-user" placeholder="Digite seu usuário" value="admin">
+    </div>
+    <div class="field-group">
+      <label>Senha</label>
+      <input type="password" id="login-pass" placeholder="••••••••" value="123456">
+    </div>
+
+    <button class="btn-login" onclick="doLogin()">Entrar no Sistema</button>
+
+    <div class="login-hint">
+      <strong>🔐 Credenciais de demonstração:</strong>
+      Admin: admin / 123456<br>
+      Liberador: liberador / 123456
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">🏛️</div>
+        <div>
+          <div class="sidebar-brand-text">Tesouraria</div>
+          <div class="sidebar-brand-sub">Sistema de Notas</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sb-avatar">AD</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sb-name">Administrador</div>
+        <div class="sidebar-user-role" id="sb-role">Admin</div>
+      </div>
+      <span class="sidebar-role-badge" id="sb-badge">Admin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-title">Principal</div>
+      <div class="nav-item active" data-page="liberacao" onclick="navTo('liberacao', this)">
+        <span class="nav-icon">📋</span> Notas Ativas
+        <span class="nav-badge" id="nav-badge-ativas">0</span>
+      </div>
+      <div class="nav-item" data-page="carrinho" onclick="navTo('carrinho', this)">
+        <span class="nav-icon">🛒</span> Carrinho
+        <span class="nav-badge" id="nav-badge-cart" style="display:none">0</span>
+      </div>
+      <div class="nav-item" data-page="historico" onclick="navTo('historico', this)">
+        <span class="nav-icon">📁</span> Histórico
+      </div>
+      <div class="nav-item" data-page="relatorios" onclick="navTo('relatorios', this)">
+        <span class="nav-icon">📊</span> Relatórios
+      </div>
+
+      <div class="sidebar-section-title nav-admin" style="margin-top:8px">Administração</div>
+      <div class="nav-item nav-admin" data-page="admin-notas" onclick="navTo('admin-notas', this)">
+        <span class="nav-icon">🗂️</span> Gerir Notas
+      </div>
+      <div class="nav-item nav-admin" data-page="admin-usuarios" onclick="navTo('admin-usuarios', this)">
+        <span class="nav-icon">👥</span> Usuários
+      </div>
+      <div class="nav-item nav-admin" data-page="admin-sheets" onclick="navTo('admin-sheets', this)">
+        <span class="nav-icon">📗</span> Google Sheets
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="doLogout()">
+        <span>🚪</span> Sair do sistema
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="page-title">Notas Ativas para Liberação</div>
+        <div class="topbar-sub" id="page-sub">Selecione as notas e adicione ao carrinho para liberar</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary btn-sm" onclick="syncSheets()">🔄 Sincronizar</button>
+        <div class="cart-btn-container" id="cart-btn-wrap" style="display:none">
+          <button class="btn btn-primary" onclick="openCart()" id="cart-toggle-btn" style="position:relative">
+            🛒 Carrinho <span id="cart-count-badge" class="cart-count-badge" style="display:none">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: LIBERAÇÃO -->
+    <div class="page active" id="page-liberacao">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📋</div>
+          <div class="stat-label">Notas Ativas</div>
+          <div class="stat-value green" id="stat-ativas">0</div>
+          <div class="stat-sub">Aguardando liberação</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-label">Valor Total Ativo</div>
+          <div class="stat-value green" id="stat-valor-ativo">R$ 0</div>
+          <div class="stat-sub">A ser liberado</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-label">Liberadas Hoje</div>
+          <div class="stat-value" id="stat-hoje">0</div>
+          <div class="stat-sub" id="stat-hoje-val">R$ 0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🛒</div>
+          <div class="stat-label">No Carrinho</div>
+          <div class="stat-value" id="stat-cart">0</div>
+          <div class="stat-sub" id="stat-cart-val">R$ 0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span style="font-size:18px">📋</span>
+          <span class="card-title">Notas Ativas — Aguardando Liberação</span>
+        </div>
+        <div class="card-body" style="padding:14px">
+          <div class="toolbar">
+            <div class="search-box">
+              <span>🔍</span>
+              <input type="text" id="search-liberacao" placeholder="Buscar credor, empenho, objeto..." oninput="renderAtivas()">
+            </div>
+            <select class="filter-select" id="filter-unidade" onchange="renderAtivas()">
+              <option value="">Todas as Unidades</option>
+            </select>
+            <select class="filter-select" id="filter-fonte" onchange="renderAtivas()">
+              <option value="">Todas as Fontes</option>
+            </select>
+            <select class="filter-select" id="filter-comp" onchange="renderAtivas()">
+              <option value="">Todas as Competências</option>
+            </select>
+            <button class="btn btn-success btn-sm" onclick="addAllVisible()">+ Adicionar Todos</button>
+          </div>
+          <div class="table-wrapper">
+            <table id="table-ativas">
+              <thead>
+                <tr>
+                  <th class="checkbox-cell"><input type="checkbox" id="check-all" onchange="toggleAll(this)"></th>
+                  <th>Unidade</th>
+                  <th>Empenho</th>
+                  <th>Sub/Emp</th>
+                  <th>Credor</th>
+                  <th>Objeto</th>
+                  <th>Valor</th>
+                  <th>Dt. Entrada</th>
+                  <th>Fonte</th>
+                  <th>Competência</th>
+                  <th>Setor</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-ativas"></tbody>
+            </table>
+          </div>
+          <div id="ativas-empty" class="empty-state" style="display:none">
+            <div class="icon">🎉</div>
+            <p>Nenhuma nota ativa encontrada com esses filtros.</p>
+          </div>
+
+          <div style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px">
+            <div style="font-size:13px; color:var(--gray-500)" id="ativas-count">0 notas exibidas</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-secondary btn-sm" id="btn-add-selected" onclick="addSelected()" style="display:none">
+                ✅ Adicionar Selecionados ao Carrinho
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: CARRINHO -->
+    <div class="page" id="page-carrinho">
+      <div class="card">
+        <div class="card-header">
+          <span style="font-size:18px">🛒</span>
+          <span class="card-title">Carrinho de Liberação</span>
+        </div>
+        <div class="card-body">
+          <div id="cart-empty" class="empty-state">
+            <div class="icon">🛒</div>
+            <p>Nenhuma nota no carrinho ainda.<br>Vá até <strong>Notas Ativas</strong> e clique em Pagar.</p>
+          </div>
+          <div id="cart-content" style="display:none">
+            <div class="table-wrapper">
+              <table id="table-cart">
+                <thead>
+                  <tr>
+                    <th>Empenho</th>
+                    <th>Sub/Emp</th>
+                    <th>Credor</th>
+                    <th>Objeto</th>
+                    <th>Valor</th>
+                    <th>Unidade</th>
+                    <th>Fonte</th>
+                    <th>Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-cart"></tbody>
+              </table>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:16px; border-top:1px solid var(--gray-200); flex-wrap:wrap; gap:10px">
+              <div>
+                <div style="font-size:13px;color:var(--gray-500)">Total no carrinho:</div>
+                <div style="font-size:22px;font-weight:700;color:var(--green-600)" id="cart-total-page">R$ 0,00</div>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn btn-danger" onclick="clearCart()">🗑️ Limpar Carrinho</button>
+                <button class="btn btn-secondary" onclick="previewProtocol()">👁️ Pré-visualizar</button>
+                <button class="btn btn-primary" onclick="confirmarLiberacao()">✅ Liberar e Imprimir Protocolo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Protocol Preview -->
+      <div class="mt-6" id="protocol-preview-wrap" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span style="font-size:18px">🖨️</span>
+            <span class="card-title">Pré-visualização do Protocolo</span>
+          </div>
+          <div class="card-body">
+            <div class="protocol-preview">
+              <div class="protocol-header-bar">
+                <div>
+                  <div style="font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:1px">Protocolo de Liberação</div>
+                  <div style="font-size:16px;font-weight:700" id="prev-prot-num">Nº 001/2026</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:10px;opacity:.7">Liberado em</div>
+                  <div style="font-size:14px;font-weight:600" id="prev-data"></div>
+                </div>
+              </div>
+              <div class="protocol-items-table">
+                <table style="width:100%;font-size:12px;border-collapse:collapse">
+                  <thead><tr style="background:var(--gray-50)">
+                    <th style="padding:8px;text-align:left;border-bottom:1px solid var(--gray-200);font-size:11px;color:var(--gray-500);text-transform:uppercase">Empenho</th>
+                    <th style="padding:8px;text-align:left;border-bottom:1px solid var(--gray-200);font-size:11px;color:var(--gray-500);text-transform:uppercase">Sub/Emp</th>
+                    <th style="padding:8px;text-align:left;border-bottom:1px solid var(--gray-200);font-size:11px;color:var(--gray-500);text-transform:uppercase">Credor</th>
+                    <th style="padding:8px;text-align:right;border-bottom:1px solid var(--gray-200);font-size:11px;color:var(--gray-500);text-transform:uppercase">Valor</th>
+                  </tr></thead>
+                  <tbody id="prev-tbody"></tbody>
+                </table>
+              </div>
+              <div class="protocol-footer-bar">
+                <div style="font-size:12px;color:var(--gray-500)">Total de <strong id="prev-qtd">0</strong> notas</div>
+                <div style="font-size:15px;font-weight:700;color:var(--green-700)" id="prev-total">R$ 0,00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: HISTÓRICO -->
+    <div class="page" id="page-historico">
+      <div class="stats-grid" id="hist-stats"></div>
+      <div class="card">
+        <div class="card-header">
+          <span style="font-size:18px">📁</span>
+          <span class="card-title">Histórico de Liberações</span>
+        </div>
+        <div class="card-body" style="padding:14px">
+          <div class="toolbar">
+            <div class="search-box">
+              <span>🔍</span>
+              <input type="text" id="search-hist" placeholder="Buscar credor, empenho..." oninput="renderHistorico()">
+            </div>
+            <select class="filter-select" id="filter-hist-fonte" onchange="renderHistorico()">
+              <option value="">Todas as Fontes</option>
+            </select>
+            <select class="filter-select" id="filter-hist-comp" onchange="renderHistorico()">
+              <option value="">Todas as Competências</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇️ Exportar CSV</button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Protocolo</th>
+                  <th>Empenho</th>
+                  <th>Sub/Emp</th>
+                  <th>Credor</th>
+                  <th>Valor</th>
+                  <th>Fonte</th>
+                  <th>Competência</th>
+                  <th>Liberado Em</th>
+                  <th>Por</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-hist"></tbody>
+            </table>
+          </div>
+          <div id="hist-empty" class="empty-state" style="display:none">
+            <div class="icon">📭</div>
+            <p>Nenhuma liberação registrada ainda.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: RELATÓRIOS -->
+    <div class="page" id="page-relatorios">
+      <div class="stats-grid" id="rel-stats-grid"></div>
+      <div class="grid-2 mt-6">
+        <div class="card">
+          <div class="card-header">
+            <span style="font-size:18px">📊</span>
+            <span class="card-title">Liberações por Fonte de Recurso</span>
+          </div>
+          <div class="card-body" id="chart-fonte"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span style="font-size:18px">🥧</span>
+            <span class="card-title">Distribuição por Fonte (%)</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrapper" id="donut-wrapper">
+              <svg id="donut-svg" width="140" height="140" viewBox="0 0 140 140"></svg>
+              <div class="donut-legend" id="donut-legend"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card mt-6">
+        <div class="card-header">
+          <span style="font-size:18px">📈</span>
+          <span class="card-title">Notas Liberadas por Competência</span>
+        </div>
+        <div class="card-body" id="chart-comp"></div>
+      </div>
+      <div class="card mt-6">
+        <div class="card-header">
+          <span style="font-size:18px">🏆</span>
+          <span class="card-title">Top Credores por Valor</span>
+        </div>
+        <div class="card-body" id="chart-credor"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: ADMIN NOTAS -->
+    <div class="page" id="page-admin-notas">
+      <div class="card">
+        <div class="card-header">
+          <span style="font-size:18px">🗂️</span>
+          <span class="card-title">Gerenciamento de Notas</span>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="openAddNota()">+ Nova Nota</button>
+            <button class="btn btn-secondary btn-sm" onclick="importSampleData()">📥 Importar Dados</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:14px">
+          <div class="toolbar">
+            <div class="search-box">
+              <span>🔍</span>
+              <input type="text" id="search-admin" placeholder="Buscar qualquer campo..." oninput="renderAdminNotas()">
+            </div>
+            <select class="filter-select" id="filter-admin-status" onchange="renderAdminNotas()">
+              <option value="">Todos os Status</option>
+              <option value="ATIVO">Ativo</option>
+              <option value="PAGO">Pago</option>
+              <option value="LIBERADO">Liberado</option>
+              <option value="DEVOLVIDO">Devolvido</option>
+            </select>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Unidade</th>
+                  <th>Empenho</th>
+                  <th>Sub/Emp</th>
+                  <th>Credor</th>
+                  <th>Valor</th>
+                  <th>Status</th>
+                  <th>Dt. Entrada</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: ADMIN USUÁRIOS -->
+    <div class="page" id="page-admin-usuarios">
+      <div class="card">
+        <div class="card-header">
+          <span style="font-size:18px">👥</span>
+          <span class="card-title">Gerenciamento de Usuários</span>
+          <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openAddUser()">+ Novo Usuário</button>
+        </div>
+        <div class="card-body">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Usuário</th><th>Nome</th><th>Perfil</th><th>Criado em</th><th>Status</th><th>Ações</th></tr>
+              </thead>
+              <tbody id="tbody-users"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: GOOGLE SHEETS -->
+    <div class="page" id="page-admin-sheets">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span style="font-size:18px">📗</span>
+            <span class="card-title">Integração Google Sheets</span>
+          </div>
+          <div class="card-body">
+            <div class="field-group" style="margin-bottom:14px">
+              <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">ID da Planilha</label>
+              <input type="text" id="sheets-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
+                style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:monospace"
+                value="1wp7zIjk0uRCV9Ew6nMvTFlyjZSvuAVR3-ngBjBy4rnw">
+            </div>
+            <div class="field-group" style="margin-bottom:14px">
+              <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Nome da Aba</label>
+              <input type="text" id="sheets-tab" placeholder="Página1"
+                style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"
+                value="Página1">
+            </div>
+            <div class="field-group" style="margin-bottom:14px">
+              <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">API Key Google Sheets <span style="font-weight:400;text-transform:none;letter-spacing:0">(leitura)</span></label>
+              <input type="password" id="sheets-key" placeholder="AIzaSy..."
+                style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:monospace">
+            </div>
+            <div class="field-group" style="margin-bottom:18px">
+              <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">URL do Webhook <span style="font-weight:400;text-transform:none;letter-spacing:0">(escrita — Apps Script)</span></label>
+              <input type="text" id="sheets-webhook" placeholder="https://script.google.com/macros/s/…/exec" value="https://script.google.com/macros/s/AKfycbw6YX30idBu3s6D7jmUPm2-aaAKJSYTGVnDlnw4fHlZ2KUBdktYvlyxIHgZsw73pjqC6Q/exec"
+                style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:monospace">
+              <div style="font-size:11px;color:var(--gray-400);margin-top:4px">Necessário para atualizar status para LIBERADO no Sheets. Veja o arquivo <strong>google-apps-script-webhook.js</strong>.</div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-primary" onclick="testSheets()">🔌 Testar Conexão</button>
+              <button class="btn btn-success" onclick="syncSheets()">🔄 Sincronizar Agora</button>
+            </div>
+            <div id="sheets-status" style="margin-top:12px;font-size:13px;color:var(--gray-500)"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span style="font-size:18px">📋</span>
+            <span class="card-title">Configuração das Colunas</span>
+          </div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--gray-600);margin-bottom:14px">Mapeamento esperado das colunas no Sheets:</p>
+            <table style="font-size:12px;width:100%;border-collapse:collapse">
+              <thead><tr><th style="padding:6px 8px;text-align:left;background:var(--gray-50);border:1px solid var(--gray-200)">Coluna Sheets</th><th style="padding:6px 8px;text-align:left;background:var(--gray-50);border:1px solid var(--gray-200)">Campo Sistema</th></tr></thead>
+              <tbody>
+                <tr><td style="padding:6px 8px;border:1px solid var(--gray-100);font-family:monospace">A</td><td style="padding:6px 8px;border:1px solid var(--gray-100)">UNIDADE</td></tr>
+                <tr><td style="padding:6px 8px;border:1px solid var(--gray-100);font-family:monospace">B</td><td style="padding:6px 8px;border:1px solid var(--gray-100)">EMPENHO</td></tr>
+                <tr><td style="padding:6px 8px;border:1px solid var(--gray-100);font-family:monospace">C</td><td style="padding:6px 8px;border:1px solid var(--gray-100)">SUB EMPENHO</td></tr>
+                <tr><td style="padding:6px 8px;border:1px solid var(--gray-100);font-family:monospace">D</td><td style="padding:6px 8px;border:1px solid var(--gray-100)">VALOR</td></tr>
+                <tr><td style="padding:6px 8px;border:1px solid var(--gray-100);font-family:monospace">E</td><td style="padding:6px 8px;border:1px solid var(--gray-100)">DATA DE ENTRADA</td></tr>
+                <tr><td style="padding:6px 8px;border:1px solid var(--gray-100);font-family:monospace">F</td><td style="padding:6px 8px;border:1px solid var(--gray-100)">CREDOR</td></tr>
+                <tr><td style="padding:6px 8px;border:1px solid var(--gray-100);font-family:monospace">G</td><td style="padding:6px 8px;border:1px solid var(--gray-100)">OBJETO</td></tr>
+                <tr><td style="padding:6px 8px;border:1px solid var(--gray-100);font-family:monospace">H</td><td style="padding:6px 8px;border:1px solid var(--gray-100)">STATUS</td></tr>
+                <tr><td style="padding:6px 8px;border:1px solid var(--gray-100);font-family:monospace">I–O</td><td style="padding:6px 8px;border:1px solid var(--gray-100)">DATA SAÍDA / SETOR / MOTIVO / COMPETÊNCIA / COD / ELEMENTO / FONTE</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:16px;background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--green-800)">
+              <strong>🔗 GitHub Pages / Vercel:</strong> Hospede este arquivo HTML e a API Key funcionará normalmente. Para <strong>escrita</strong> no Sheets (atualizar status), a planilha precisa estar compartilhada como <em>Editor para qualquer pessoa com o link</em>, ou use OAuth2 em produção.
+            </div>
+            <div style="margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius);padding:12px;font-size:12px;color:#1e40af">
+              <strong>📖 Fluxo completo:</strong><br>
+              1. Crie API Key no <a href="https://console.cloud.google.com" target="_blank" style="color:#1d4ed8">Google Cloud Console</a> com acesso à <em>Sheets API</em>.<br>
+              2. Ative a API e restrinja a key ao domínio do seu site.<br>
+              3. Para <strong>leitura</strong>: planilha pública OU compartilhada com a service account.<br>
+              4. Para <strong>escrita</strong> (atualizar status LIBERADO): use <em>Apps Script</em> com webhook — veja o README no GitHub.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════ CART PANEL (SIDEBAR) ══════════════ -->
+<div id="cart-panel">
+  <div class="cart-header">
+    <div>
+      <h3>🛒 Carrinho de Liberação</h3>
+      <div style="font-size:12px;color:var(--gray-500);margin-top:2px" id="cart-panel-count">0 notas</div>
+    </div>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-panel-items">
+    <div class="empty-state"><div class="icon">🛒</div><p>Carrinho vazio</p></div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span class="cart-total-label">Total</span>
+      <span class="cart-total-value" id="cart-panel-total">R$ 0,00</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" style="flex:1" onclick="navTo('carrinho');closeCart()">Ver Carrinho</button>
+      <button class="btn btn-primary" style="flex:1" onclick="confirmarLiberacao()">✅ Liberar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL ADD NOTA ══════════════ -->
+<div class="modal-overlay" id="modal-nota">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-nota-title">Nova Nota</h3>
+      <button class="cart-close" onclick="closeModal('modal-nota')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2" style="gap:12px">
+        <div><label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px">Unidade</label>
+          <input type="text" id="f-unidade" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"></div>
+        <div><label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px">Empenho</label>
+          <input type="text" id="f-empenho" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"></div>
+        <div><label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px">Sub Empenho</label>
+          <input type="text" id="f-sub" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"></div>
+        <div><label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px">Valor</label>
+          <input type="text" id="f-valor" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"></div>
+        <div><label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px">Data Entrada</label>
+          <input type="date" id="f-dt" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"></div>
+        <div><label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px">Competência</label>
+          <input type="text" id="f-comp" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"></div>
+      </div>
+      <div style="margin-top:12px">
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px">Credor</label>
+        <input type="text" id="f-credor" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif">
+      </div>
+      <div style="margin-top:12px">
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px">Objeto</label>
+        <input type="text" id="f-objeto" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif">
+      </div>
+      <div style="margin-top:12px">
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px">Fonte</label>
+        <input type="text" id="f-fonte" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif">
+      </div>
+      <input type="hidden" id="f-edit-idx" value="-1">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-nota')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNota()">Salvar Nota</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL ADD USER ══════════════ -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal" style="width:400px">
+    <div class="modal-header">
+      <h3>Novo Usuário</h3>
+      <button class="cart-close" onclick="closeModal('modal-user')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Login</label>
+        <input type="text" id="u-login" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"></div>
+      <div class="field-group" style="margin-top:10px"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Nome Completo</label>
+        <input type="text" id="u-nome" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"></div>
+      <div class="field-group" style="margin-top:10px"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Senha</label>
+        <input type="password" id="u-senha" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif"></div>
+      <div class="field-group" style="margin-top:10px"><label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Perfil</label>
+        <select id="u-perfil" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif">
+          <option value="admin">Administrador</option>
+          <option value="liberador">Liberador</option>
+        </select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-user')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveUser()">Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PRINT AREA ══════════════ -->
+<div id="print-area">
+  <div class="print-header">
+    <h1>Prefeitura Municipal — Tesouraria</h1>
+    <p>Protocolo de Liberação de Notas para Pagamento</p>
+  </div>
+  <div class="print-protocol">
+    <strong id="prt-prot">Protocolo Nº 001/2026</strong><br>
+    <span>LIBERADO EM: </span><span id="prt-data"></span><br>
+    <span>LIBERADO POR: </span><span id="prt-user"></span>
+  </div>
+  <table class="print-table" id="prt-table">
+    <thead><tr>
+      <th>Empenho</th><th>Sub/Emp</th><th>Credor</th><th>Objeto</th><th>Valor</th>
+    </tr></thead>
+    <tbody id="prt-tbody"></tbody>
+  </table>
+  <div class="print-total" id="prt-total"></div>
+  <div class="print-footer">
+    <div class="print-sign">Responsável pela Liberação</div>
+    <div class="print-sign">Tesoureiro(a)</div>
+  </div>
+</div>
+
+<!-- ══════════════ TOAST CONTAINER ══════════════ -->
+<div id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const INITIAL_DATA = [
+  {unidade:'3001',empenho:'380',sub:'1166',valor:345.00,dtEntrada:'13/03/2026',credor:'A & S COMÉRCIO DE PRODUTOS E MATERIAIS HOSPITALARES LTDA',objeto:'MATERIAL PENSO HOSPITALAR',status:'ATIVO',dtSaida:'12/03/2026',setor:'CONTABILIDADE',motivo:'ATESTO DO FISCAL DE CONTRATO',competencia:'março',cod:'2017301500',elemento:'Material de Consumo',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'2012',empenho:'640',sub:'1193',valor:2750.00,dtEntrada:'12/03/2026',credor:'ANTONIETA FIGUEREDO DA SILVA',objeto:'LOCAÇÃO DE IMÓVEL',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'4015361500',elemento:'Outros Serviços de Terceiros - Pessoa Física',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'3001',empenho:'335',sub:'1198',valor:360.00,dtEntrada:'12/03/2026',credor:'ANTONIO GONÇALVES GONZAGA',objeto:'AUXILIO FINANCEIRO PARA PACIENTES TFD',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2067481500',elemento:'Outros Auxilios Financeiros a Pessoas Físicas',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'2008',empenho:'132',sub:'543',valor:69414.17,dtEntrada:'11/02/2026',credor:'ARQTEC ENGENHARIA LTDA',objeto:'SERVIÇO DE DESCARTE DE LIXO',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'fevereiro',cod:'2042391500',elemento:'Outros Serviços Terceiros - Pessoa Jurídica',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'2008',empenho:'132',sub:'1167',valor:53201.92,dtEntrada:'12/03/2026',credor:'ARQTEC ENGENHARIA LTDA',objeto:'SERVIÇO DE DESCARTE DE LIXO',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2042391500',elemento:'Outros Serviços Terceiros - Pessoa Jurídica',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'2010',empenho:'77',sub:'1266',valor:4800.00,dtEntrada:'13/03/2026',credor:'ASSOCIAÇÃO EDUCACIONAL E MUSICAL 05 DE MARÇO',objeto:'TERMO DE COLABORAÇÃO',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2048431500',elemento:'Subvenções Sociais',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'2010',empenho:'78',sub:'1267',valor:4800.00,dtEntrada:'13/03/2026',credor:'ASSOCIAÇÃO FILARMÔNICA LIRA POPULAR MURITIBANA',objeto:'TERMO DE COLABORAÇÃO',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2048431500',elemento:'Subvenções Sociais',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'3001',empenho:'129',sub:'1205',valor:5600.00,dtEntrada:'13/03/2026',credor:'CARLOS ALBERTO SILVEIRA MAIA ME - GESTÃO DIGITAL',objeto:'ASSESSORIAS E CONSULTORIAS TECNICAS',status:'ATIVO',dtSaida:'12/03/2026',setor:'CONTABILIDADE',motivo:'CERTIDÃO TRABALHISTA VENCIDA',competencia:'março',cod:'4010391500',elemento:'Outros Serviços Terceiros - Pessoa Jurídica',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'3001',empenho:'363',sub:'1195',valor:330.00,dtEntrada:'12/03/2026',credor:'CARLOS AUGUSTO DE SOUZA PINTO',objeto:'AUXILIO FINANCEIRO PARA PACIENTES TFD',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2067481500',elemento:'Outros Auxilios Financeiros a Pessoas Físicas',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'3001',empenho:'279',sub:'1391',valor:50.00,dtEntrada:'17/03/2026',credor:'CINTIA SANTOS MOREIRA',objeto:'AUXILIO FINANCEIRO PARA PACIENTES TFD',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2020141500',elemento:'Diárias - Civil',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'2010',empenho:'685',sub:'1432',valor:90.00,dtEntrada:'19/03/2026',credor:'CLAUDIO MARCIO REBOUCAS DA SILVA',objeto:'CONCESSÃO DE DIARIAS A SERVIDORES',status:'ATIVO',dtSaida:'',setor:'CONTABILIDADE',motivo:'ATESTO',competencia:'março',cod:'4013141500',elemento:'Diárias - Civil',fonte:'Prefeitura - Recursos Proprios'},
+  {unidade:'3001',empenho:'237',sub:'1244',valor:180.00,dtEntrada:'13/03/2026',credor:'COMERCIAL CIRURGICA RIOCLARENSE LTDA',objeto:'MEDICAMENTOS',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2023321600',elemento:'Material de Distribuição gratuita.',fonte:'FNS - Transferências de Recursos do SUS - MAC e PAB'},
+  {unidade:'3001',empenho:'293',sub:'1357',valor:1100.00,dtEntrada:'17/03/2026',credor:'COMERCIAL CIRURGICA RIOCLARENSE LTDA',objeto:'MEDICAMENTOS',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2023321600',elemento:'Material de Distribuição gratuita.',fonte:'FNS - Transferências de Recursos do SUS - MAC e PAB'},
+  {unidade:'3001',empenho:'342',sub:'1356',valor:800.00,dtEntrada:'17/03/2026',credor:'COMERCIAL CIRURGICA RIOCLARENSE LTDA',objeto:'MEDICAMENTOS',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2023321600',elemento:'Material de Distribuição gratuita.',fonte:'FNS - Transferências de Recursos do SUS - MAC e PAB'},
+  {unidade:'2007',empenho:'659',sub:'1485',valor:1122.00,dtEntrada:'19/03/2026',credor:'CONSTRUCAP INCORPORADORA LTDA',objeto:'SERVIÇO DE MANUTENÇÃO',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2072391550',elemento:'Outros Serviços Terceiros - Pessoa Jurídica',fonte:'QSE - Transferência do Salário-Educação'},
+  {unidade:'2007',empenho:'659',sub:'1484',valor:1722.00,dtEntrada:'19/03/2026',credor:'CONSTRUCAP INCORPORADORA LTDA',objeto:'SERVIÇO DE MANUTENÇÃO',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2072391550',elemento:'Outros Serviços Terceiros - Pessoa Jurídica',fonte:'QSE - Transferência do Salário-Educação'},
+  {unidade:'2007',empenho:'658',sub:'1482',valor:924.00,dtEntrada:'19/03/2026',credor:'CONSTRUCAP INCORPORADORA LTDA',objeto:'SERVIÇO DE MANUTENÇÃO',status:'ATIVO',dtSaida:'',setor:'',motivo:'',competencia:'março',cod:'2070391550',elemento:'Outros Serviços Terceiros - Pessoa Jurídica',fonte:'QSE - Transferência do Salário-Educação'},
+];
+
+const USERS_DEFAULT = [
+  {login:'admin',nome:'Administrador',senha:'123456',perfil:'admin',criado:'20/03/2026',ativo:true},
+  {login:'liberador',nome:'Liberador de Notas',senha:'123456',perfil:'liberador',criado:'20/03/2026',ativo:true},
+];
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+// Pre-populate Sheets config defaults if not yet set
+if (!localStorage.getItem('sheets_id'))      localStorage.setItem('sheets_id',      '1wp7zIjk0uRCV9Ew6nMvTFlyjZSvuAVR3-ngBjBy4rnw');
+if (!localStorage.getItem('sheets_tab'))     localStorage.setItem('sheets_tab',     'Página1');
+if (!localStorage.getItem('sheets_webhook')) localStorage.setItem('sheets_webhook', 'https://script.google.com/macros/s/AKfycbw6YX30idBu3s6D7jmUPm2-aaAKJSYTGVnDlnw4fHlZ2KUBdktYvlyxIHgZsw73pjqC6Q/exec');
+
+let notas = JSON.parse(localStorage.getItem('notas') || 'null') || JSON.parse(JSON.stringify(INITIAL_DATA));
+let historico = JSON.parse(localStorage.getItem('historico') || '[]');
+let usuarios = JSON.parse(localStorage.getItem('usuarios') || 'null') || JSON.parse(JSON.stringify(USERS_DEFAULT));
+let cart = [];
+let currentUser = null;
+let protNum = parseInt(localStorage.getItem('protNum') || '0');
+
+function save() {
+  localStorage.setItem('notas', JSON.stringify(notas));
+  localStorage.setItem('historico', JSON.stringify(historico));
+  localStorage.setItem('usuarios', JSON.stringify(usuarios));
+  localStorage.setItem('protNum', protNum);
+}
+
+// ══════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════
+function doLogin() {
+  const role = document.getElementById('login-role').value;
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const found = usuarios.find(u => u.login === user && u.senha === pass && u.perfil === role);
+  if (!found) { toast('Usuário ou senha inválidos', 'error'); return; }
+  currentUser = found;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initApp();
+}
+
+function doLogout() {
+  currentUser = null;
+  cart = [];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════
+// APP INIT
+// ══════════════════════════════════════════════
+function initApp() {
+  const isAdmin = currentUser.perfil === 'admin';
+  document.getElementById('app').className = isAdmin ? 'role-admin' : '';
+  document.getElementById('sb-avatar').textContent = currentUser.nome.substring(0,2).toUpperCase();
+  document.getElementById('sb-name').textContent = currentUser.nome;
+  document.getElementById('sb-role').textContent = currentUser.perfil === 'admin' ? 'Administrador' : 'Liberador';
+  document.getElementById('sb-badge').textContent = currentUser.perfil === 'admin' ? 'Admin' : 'Lib';
+  document.getElementById('cart-btn-wrap').style.display = 'flex';
+  document.getElementById('float-cart-btn').style.display = 'flex';
+  populateFilters();
+  renderAtivas();
+  renderHistorico();
+  renderAdminNotas();
+  renderUsers();
+  updateCartUI();
+  updateStats();
+  loadSheetsConfigUI();
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+const pageTitles = {
+  liberacao: ['Notas Ativas para Liberação', 'Selecione as notas e adicione ao carrinho para liberar'],
+  carrinho: ['Carrinho de Liberação', 'Revise e libere as notas selecionadas'],
+  historico: ['Histórico de Liberações', 'Todas as liberações realizadas'],
+  relatorios: ['Relatórios e Gráficos', 'Análise de liberações por fonte, competência e credor'],
+  'admin-notas': ['Gerenciamento de Notas', 'Cadastrar, editar e excluir notas'],
+  'admin-usuarios': ['Gerenciamento de Usuários', 'Cadastrar e gerenciar perfis de acesso'],
+  'admin-sheets': ['Integração Google Sheets', 'Configurar sincronização com Google Sheets'],
+};
+
+function navTo(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('active');
+  if (el) el.classList.add('active');
+  else {
+    const nav = document.querySelector(`[data-page="${page}"]`);
+    if (nav) nav.classList.add('active');
+  }
+  const t = pageTitles[page];
+  if (t) {
+    document.getElementById('page-title').textContent = t[0];
+    document.getElementById('page-sub').textContent = t[1];
+  }
+  if (page === 'relatorios') renderRelatorios();
+  if (page === 'historico') renderHistorico();
+}
+
+// ══════════════════════════════════════════════
+// FILTERS
+// ══════════════════════════════════════════════
+function populateFilters() {
+  const ativas = notas.filter(n => n.status === 'ATIVO');
+  const unidades = [...new Set(ativas.map(n => n.unidade))].sort();
+  const fontes = [...new Set(notas.map(n => n.fonte))].sort();
+  const comps = [...new Set(notas.map(n => n.competencia))].sort();
+
+  fillSelect('filter-unidade', unidades, 'Todas as Unidades');
+  fillSelect('filter-fonte', fontes, 'Todas as Fontes');
+  fillSelect('filter-comp', comps, 'Todas as Competências');
+  fillSelect('filter-hist-fonte', fontes, 'Todas as Fontes');
+  fillSelect('filter-hist-comp', comps, 'Todas as Competências');
+}
+function fillSelect(id, arr, placeholder) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const val = el.value;
+  el.innerHTML = `<option value="">${placeholder}</option>` + arr.map(v => `<option value="${v}">${v}</option>`).join('');
+  el.value = val;
+}
+
+// ══════════════════════════════════════════════
+// RENDER ATIVAS
+// ══════════════════════════════════════════════
+function getAtivas() {
+  const q = document.getElementById('search-liberacao')?.value.toLowerCase() || '';
+  const fu = document.getElementById('filter-unidade')?.value || '';
+  const ff = document.getElementById('filter-fonte')?.value || '';
+  const fc = document.getElementById('filter-comp')?.value || '';
+  return notas.filter((n, i) => {
+    if (n.status !== 'ATIVO') return false;
+    if (fu && n.unidade !== fu) return false;
+    if (ff && n.fonte !== ff) return false;
+    if (fc && n.competencia !== fc) return false;
+    if (q && !JSON.stringify(n).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderAtivas() {
+  const ativas = getAtivas();
+  const tbody = document.getElementById('tbody-ativas');
+  const empty = document.getElementById('ativas-empty');
+  const count = document.getElementById('ativas-count');
+  tbody.innerHTML = '';
+  if (ativas.length === 0) { empty.style.display = 'block'; }
+  else { empty.style.display = 'none'; }
+
+  const cartSubs = new Set(cart.map(c => c.sub));
+  ativas.forEach(n => {
+    const inCart = cartSubs.has(n.sub);
+    const idx = notas.indexOf(n);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="checkbox-cell"><input type="checkbox" class="nota-check" data-idx="${idx}" ${inCart?'checked disabled':''}></td>
+      <td><span class="badge badge-gray">${n.unidade}</span></td>
+      <td><span class="mono">${n.empenho}</span></td>
+      <td><span class="mono">${n.sub}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${n.credor}">${n.credor}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${n.objeto}"><small>${n.objeto}</small></td>
+      <td><strong style="color:var(--green-600)">${fmtVal(n.valor)}</strong></td>
+      <td><small>${n.dtEntrada}</small></td>
+      <td><small style="max-width:140px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${n.fonte}">${n.fonte}</small></td>
+      <td><span class="badge badge-blue">${n.competencia}</span></td>
+      <td><small>${n.setor||'—'}</small></td>
+      <td>
+        ${inCart
+          ? `<button class="btn btn-danger btn-sm" onclick="removeFromCart('${n.sub}')">✕ Remover</button>`
+          : `<button class="btn btn-primary btn-sm" onclick="addToCart(${idx})">🛒 Pagar</button>`
+        }
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  count.textContent = `${ativas.length} nota${ativas.length !== 1 ? 's' : ''} exibida${ativas.length !== 1 ? 's' : ''}`;
+  document.getElementById('nav-badge-ativas').textContent = ativas.length;
+  updateStats();
+
+  // Checkbox listener
+  document.querySelectorAll('.nota-check:not(:disabled)').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const anyChecked = document.querySelectorAll('.nota-check:checked:not(:disabled)').length > 0;
+      document.getElementById('btn-add-selected').style.display = anyChecked ? 'inline-flex' : 'none';
+    });
+  });
+}
+
+// ══════════════════════════════════════════════
+// CART LOGIC
+// ══════════════════════════════════════════════
+function addToCart(idx) {
+  const nota = notas[idx];
+  if (cart.find(c => c.sub === nota.sub)) { toast('Nota já está no carrinho', 'info'); return; }
+  cart.push({...nota, _idx: idx});
+  updateCartUI();
+  renderAtivas();
+  toast(`✅ ${nota.credor.split(' ').slice(0,3).join(' ')} adicionado ao carrinho`, 'success');
+}
+
+function removeFromCart(sub) {
+  cart = cart.filter(c => c.sub !== sub);
+  updateCartUI();
+  renderAtivas();
+  renderCartPage();
+}
+
+function addSelected() {
+  const checks = document.querySelectorAll('.nota-check:checked:not(:disabled)');
+  let count = 0;
+  checks.forEach(cb => {
+    const idx = parseInt(cb.dataset.idx);
+    if (!cart.find(c => c.sub === notas[idx].sub)) {
+      cart.push({...notas[idx], _idx: idx});
+      count++;
+    }
+  });
+  updateCartUI();
+  renderAtivas();
+  if (count > 0) toast(`✅ ${count} nota(s) adicionada(s) ao carrinho`, 'success');
+}
+
+function addAllVisible() {
+  const ativas = getAtivas();
+  let count = 0;
+  ativas.forEach(n => {
+    if (!cart.find(c => c.sub === n.sub)) {
+      cart.push({...n});
+      count++;
+    }
+  });
+  updateCartUI();
+  renderAtivas();
+  if (count > 0) toast(`✅ ${count} nota(s) adicionada(s) ao carrinho`, 'success');
+}
+
+function clearCart() {
+  if (!confirm('Limpar todo o carrinho?')) return;
+  cart = [];
+  updateCartUI();
+  renderAtivas();
+  renderCartPage();
+  toast('Carrinho limpo', 'info');
+}
+
+function updateCartUI() {
+  const n = cart.length;
+  const total = cart.reduce((s, c) => s + c.valor, 0);
+
+  // Badge
+  const badge = document.getElementById('cart-count-badge');
+  badge.textContent = n;
+  badge.style.display = n > 0 ? 'flex' : 'none';
+
+  // Nav badge
+  const nb = document.getElementById('nav-badge-cart');
+  nb.textContent = n;
+  nb.style.display = n > 0 ? 'inline-flex' : 'none';
+
+  // Stats
+  document.getElementById('stat-cart').textContent = n;
+  document.getElementById('stat-cart-val').textContent = fmtVal(total);
+
+  // Panel
+  renderCartPanel();
+  renderCartPage();
+}
+
+function renderCartPanel() {
+  const el = document.getElementById('cart-panel-items');
+  const n = cart.length;
+  const total = cart.reduce((s, c) => s + c.valor, 0);
+  document.getElementById('cart-panel-count').textContent = `${n} nota${n!==1?'s':''}`;
+  document.getElementById('cart-panel-total').textContent = fmtVal(total);
+
+  if (n === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>Carrinho vazio</p></div>';
+    return;
+  }
+  el.innerHTML = cart.map((c, i) => `
+    <div class="cart-item">
+      <button class="cart-remove" onclick="removeFromCart('${c.sub}')">✕</button>
+      <div class="cart-item-top">
+        <div class="cart-item-name">${c.credor.split(' ').slice(0,4).join(' ')}</div>
+        <div class="cart-item-value">${fmtVal(c.valor)}</div>
+      </div>
+      <div class="cart-item-meta">Emp. ${c.empenho} / Sub ${c.sub} · ${c.competencia}</div>
+    </div>`).join('');
+}
+
+function renderCartPage() {
+  const tbody = document.getElementById('tbody-cart');
+  const n = cart.length;
+  const total = cart.reduce((s, c) => s + c.valor, 0);
+  document.getElementById('cart-empty').style.display = n === 0 ? 'block' : 'none';
+  document.getElementById('cart-content').style.display = n > 0 ? 'block' : 'none';
+  document.getElementById('cart-total-page').textContent = fmtVal(total);
+  if (!tbody) return;
+  tbody.innerHTML = cart.map(c => `
+    <tr>
+      <td><span class="mono">${c.empenho}</span></td>
+      <td><span class="mono">${c.sub}</span></td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.credor}">${c.credor}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><small>${c.objeto}</small></td>
+      <td><strong style="color:var(--green-600)">${fmtVal(c.valor)}</strong></td>
+      <td><span class="badge badge-gray">${c.unidade}</span></td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><small title="${c.fonte}">${c.fonte}</small></td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeFromCart('${c.sub}')">✕</button></td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// LIBERAR
+// ══════════════════════════════════════════════
+async function confirmarLiberacao() {
+  if (cart.length === 0) { toast('Carrinho vazio!', 'error'); return; }
+  if (!confirm(`Confirmar liberação de ${cart.length} nota(s) para pagamento?`)) return;
+
+  protNum++;
+  const today = new Date().toLocaleDateString('pt-BR');
+  const protId = String(protNum).padStart(3,'0') + '/' + new Date().getFullYear();
+
+  // 1. Atualiza estado local + enfileira writes no Sheets
+  const sheetsWrites = [];
+  cart.forEach(c => {
+    const idx = notas.findIndex(n => n.sub === c.sub && n.empenho === c.empenho);
+    if (idx >= 0) {
+      notas[idx].status  = 'LIBERADO';
+      notas[idx].dtSaida = today;
+      // Agenda write-back para esta linha
+      sheetsWrites.push(updateSheetsRow(notas[idx], 'LIBERADO', today));
+    }
+    historico.unshift({
+      protocolo: protId,
+      empenho: c.empenho, sub: c.sub,
+      credor: c.credor, objeto: c.objeto,
+      valor: c.valor, unidade: c.unidade,
+      fonte: c.fonte, competencia: c.competencia,
+      dataLib: today, liberadoPor: currentUser.nome
+    });
+  });
+
+  save();
+
+  // 2. Dispara todos os writes para o Sheets em paralelo
+  if (sheetsWrites.length > 0) {
+    toast('Atualizando status no Google Sheets…', 'info');
+    try {
+      await Promise.all(sheetsWrites);
+      toast(`${cart.length} linha(s) atualizadas no Sheets`, 'success');
+    } catch(e) {
+      toast('Aviso: erro ao gravar no Sheets — ' + e.message, 'error');
+    }
+  }
+
+  // 3. Imprime protocolo e limpa carrinho
+  printProtocol(protId, today);
+  toast(`${cart.length} nota(s) liberada(s)! Protocolo ${protId}`, 'success');
+  cart = [];
+  populateFilters();
+  updateCartUI();
+  renderAtivas();
+  renderHistorico();
+  renderAdminNotas();
+}
+
+function printProtocol(protId, today) {
+  const total = historico.filter(h => h.protocolo === protId).reduce((s, h) => s + h.valor, 0);
+  const items = historico.filter(h => h.protocolo === protId);
+  document.getElementById('prt-prot').textContent = `Protocolo Nº ${protId}`;
+  document.getElementById('prt-data').textContent = today;
+  document.getElementById('prt-user').textContent = currentUser.nome;
+  document.getElementById('prt-tbody').innerHTML = items.map(h =>
+    `<tr><td>${h.empenho}</td><td>${h.sub}</td><td>${h.credor}</td><td>${h.objeto}</td><td>${fmtVal(h.valor)}</td></tr>`
+  ).join('');
+  document.getElementById('prt-total').textContent = `TOTAL: ${fmtVal(total)}`;
+  window.print();
+}
+
+function previewProtocol() {
+  if (cart.length === 0) { toast('Carrinho vazio', 'error'); return; }
+  const today = new Date().toLocaleDateString('pt-BR');
+  const total = cart.reduce((s, c) => s + c.valor, 0);
+  document.getElementById('prev-data').textContent = today;
+  document.getElementById('prev-prot-num').textContent = `Nº ${String(protNum+1).padStart(3,'0')}/${new Date().getFullYear()}`;
+  document.getElementById('prev-qtd').textContent = cart.length;
+  document.getElementById('prev-total').textContent = fmtVal(total);
+  document.getElementById('prev-tbody').innerHTML = cart.map(c => `
+    <tr>
+      <td style="padding:7px 8px;border-bottom:1px solid var(--gray-100)">${c.empenho}</td>
+      <td style="padding:7px 8px;border-bottom:1px solid var(--gray-100)">${c.sub}</td>
+      <td style="padding:7px 8px;border-bottom:1px solid var(--gray-100)">${c.credor}</td>
+      <td style="padding:7px 8px;border-bottom:1px solid var(--gray-100);text-align:right;font-weight:600;color:var(--green-600)">${fmtVal(c.valor)}</td>
+    </tr>`).join('');
+  document.getElementById('protocol-preview-wrap').style.display = 'block';
+  document.getElementById('protocol-preview-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════════
+// HISTORICO
+// ══════════════════════════════════════════════
+function renderHistorico() {
+  const q = document.getElementById('search-hist')?.value.toLowerCase() || '';
+  const ff = document.getElementById('filter-hist-fonte')?.value || '';
+  const fc = document.getElementById('filter-hist-comp')?.value || '';
+  const items = historico.filter(h => {
+    if (ff && h.fonte !== ff) return false;
+    if (fc && h.competencia !== fc) return false;
+    if (q && !JSON.stringify(h).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const tbody = document.getElementById('tbody-hist');
+  const empty = document.getElementById('hist-empty');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  empty.style.display = items.length === 0 ? 'block' : 'none';
+  items.forEach(h => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="badge badge-green">Nº ${h.protocolo}</span></td>
+      <td><span class="mono">${h.empenho}</span></td>
+      <td><span class="mono">${h.sub}</span></td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.credor}</td>
+      <td><strong style="color:var(--green-600)">${fmtVal(h.valor)}</strong></td>
+      <td><small title="${h.fonte}">${h.fonte.split(' - ')[0]}</small></td>
+      <td><span class="badge badge-blue">${h.competencia}</span></td>
+      <td>${h.dataLib}</td>
+      <td><small>${h.liberadoPor}</small></td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Hist stats
+  const total = historico.reduce((s, h) => s + h.valor, 0);
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const hojeItems = historico.filter(h => h.dataLib === hoje);
+  const hojeTotal = hojeItems.reduce((s, h) => s + h.valor, 0);
+  document.getElementById('hist-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon">📁</div><div class="stat-label">Total Liberações</div><div class="stat-value green">${historico.length}</div><div class="stat-sub">Registros históricos</div></div>
+    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label">Volume Total Liberado</div><div class="stat-value green">${fmtVal(total)}</div><div class="stat-sub">Histórico completo</div></div>
+    <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-label">Liberado Hoje</div><div class="stat-value">${hojeItems.length}</div><div class="stat-sub">${fmtVal(hojeTotal)}</div></div>
+    <div class="stat-card"><div class="stat-icon">🗓️</div><div class="stat-label">Protocolos Emitidos</div><div class="stat-value">${protNum}</div><div class="stat-sub">Número do último: ${protNum}</div></div>`;
+}
+
+// ══════════════════════════════════════════════
+// RELATÓRIOS
+// ══════════════════════════════════════════════
+function renderRelatorios() {
+  const all = [...historico];
+  const total = all.reduce((s, h) => s + h.valor, 0);
+  const uniq = [...new Set(all.map(h => h.credor))].length;
+
+  document.getElementById('rel-stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-icon">💸</div><div class="stat-label">Total Liberado</div><div class="stat-value green">${fmtVal(total)}</div></div>
+    <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-label">Notas Liberadas</div><div class="stat-value green">${all.length}</div></div>
+    <div class="stat-card"><div class="stat-icon">🏢</div><div class="stat-label">Credores Únicos</div><div class="stat-value">${uniq}</div></div>
+    <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-label">Protocolos</div><div class="stat-value">${protNum}</div></div>`;
+
+  // Por fonte
+  const fontes = {};
+  all.forEach(h => { fontes[h.fonte] = (fontes[h.fonte]||0) + h.valor; });
+  const fonteSorted = Object.entries(fontes).sort((a,b) => b[1]-a[1]);
+  const maxF = fonteSorted[0]?.[1] || 1;
+
+  document.getElementById('chart-fonte').innerHTML = fonteSorted.length === 0
+    ? '<p style="color:var(--gray-400);text-align:center;padding:20px">Nenhum dado</p>'
+    : `<div class="chart-bar-wrapper">${fonteSorted.map(([f, v]) => `
+      <div class="chart-bar-row">
+        <div class="chart-bar-label" title="${f}">${f.length > 28 ? f.substring(0,28)+'…' : f}</div>
+        <div class="chart-bar-track">
+          <div class="chart-bar-fill" style="width:${Math.max(5,(v/maxF*100)).toFixed(1)}%">${fmtVal(v)}</div>
+        </div>
+        <div class="chart-bar-value">${((v/total)*100).toFixed(1)}%</div>
+      </div>`).join('')}</div>`;
+
+  // Donut
+  const colors = ['#16a34a','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+  renderDonut(fonteSorted.map(([f,v],i) => ({label:f.split(' - ')[0].substring(0,20),value:v,color:colors[i%colors.length]})));
+
+  // Por competência
+  const comps = {};
+  all.forEach(h => { comps[h.competencia] = (comps[h.competencia]||0) + h.valor; });
+  const compSorted = Object.entries(comps).sort((a,b) => b[1]-a[1]);
+  const maxC = compSorted[0]?.[1] || 1;
+  document.getElementById('chart-comp').innerHTML = compSorted.length === 0
+    ? '<p style="color:var(--gray-400);text-align:center;padding:20px">Nenhum dado</p>'
+    : `<div class="chart-bar-wrapper">${compSorted.map(([c, v]) => `
+      <div class="chart-bar-row">
+        <div class="chart-bar-label">${c}</div>
+        <div class="chart-bar-track">
+          <div class="chart-bar-fill" style="width:${Math.max(5,(v/maxC*100)).toFixed(1)}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)">${fmtVal(v)}</div>
+        </div>
+        <div class="chart-bar-value">${((v/total)*100).toFixed(1)}%</div>
+      </div>`).join('')}</div>`;
+
+  // Por credor (top 8)
+  const credores = {};
+  all.forEach(h => { credores[h.credor] = (credores[h.credor]||0) + h.valor; });
+  const credSorted = Object.entries(credores).sort((a,b) => b[1]-a[1]).slice(0,8);
+  const maxCr = credSorted[0]?.[1] || 1;
+  document.getElementById('chart-credor').innerHTML = credSorted.length === 0
+    ? '<p style="color:var(--gray-400);text-align:center;padding:20px">Nenhum dado</p>'
+    : `<div class="chart-bar-wrapper">${credSorted.map(([c, v]) => `
+      <div class="chart-bar-row">
+        <div class="chart-bar-label" title="${c}">${c.length > 28 ? c.substring(0,28)+'…' : c}</div>
+        <div class="chart-bar-track">
+          <div class="chart-bar-fill" style="width:${Math.max(5,(v/maxCr*100)).toFixed(1)}%;background:linear-gradient(90deg,#8b5cf6,#a78bfa)">${fmtVal(v)}</div>
+        </div>
+        <div class="chart-bar-value">${fmtVal(v)}</div>
+      </div>`).join('')}</div>`;
+}
+
+function renderDonut(data) {
+  const svg = document.getElementById('donut-svg');
+  const legend = document.getElementById('donut-legend');
+  if (!svg) return;
+  const total = data.reduce((s, d) => s + d.value, 0);
+  if (total === 0) { svg.innerHTML = ''; legend.innerHTML = '<p style="font-size:12px;color:var(--gray-400)">Sem dados</p>'; return; }
+  const cx = 70, cy = 70, r = 50, ir = 28;
+  let angle = -Math.PI / 2;
+  let paths = '';
+  data.forEach(d => {
+    const a = (d.value / total) * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(angle);
+    const y1 = cy + r * Math.sin(angle);
+    const x2 = cx + r * Math.cos(angle + a);
+    const y2 = cy + r * Math.sin(angle + a);
+    const ix1 = cx + ir * Math.cos(angle);
+    const iy1 = cy + ir * Math.sin(angle);
+    const ix2 = cx + ir * Math.cos(angle + a);
+    const iy2 = cy + ir * Math.sin(angle + a);
+    const large = a > Math.PI ? 1 : 0;
+    paths += `<path d="M${ix1.toFixed(1)},${iy1.toFixed(1)} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} L${ix2.toFixed(1)},${iy2.toFixed(1)} A${ir},${ir} 0 ${large},0 ${ix1.toFixed(1)},${iy1.toFixed(1)} Z" fill="${d.color}" opacity=".9"/>`;
+    angle += a;
+  });
+  svg.innerHTML = paths;
+  legend.innerHTML = data.map(d => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${d.color}"></div>
+      <span>${d.label} — <strong>${((d.value/total)*100).toFixed(1)}%</strong></span>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// ADMIN NOTAS
+// ══════════════════════════════════════════════
+function renderAdminNotas() {
+  const q = document.getElementById('search-admin')?.value.toLowerCase() || '';
+  const fs = document.getElementById('filter-admin-status')?.value || '';
+  const items = notas.filter((n, i) => {
+    if (fs && n.status !== fs) return false;
+    if (q && !JSON.stringify(n).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const tbody = document.getElementById('tbody-admin');
+  if (!tbody) return;
+  tbody.innerHTML = items.map((n) => {
+    const idx = notas.indexOf(n);
+    const statusBadge = n.status === 'ATIVO' ? 'badge-green' : n.status === 'LIBERADO' ? 'badge-blue' : n.status === 'PAGO' ? 'badge-blue' : 'badge-orange';
+    return `<tr>
+      <td><span class="badge badge-gray">${n.unidade}</span></td>
+      <td><span class="mono">${n.empenho}</span></td>
+      <td><span class="mono">${n.sub}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.credor}</td>
+      <td><strong style="color:var(--green-600)">${fmtVal(n.valor)}</strong></td>
+      <td><span class="badge ${statusBadge}">${n.status}</span></td>
+      <td>${n.dtEntrada}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="editNota(${idx})" data-tip="Editar">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteNota(${idx})" data-tip="Excluir" style="margin-left:4px">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddNota() {
+  document.getElementById('modal-nota-title').textContent = 'Nova Nota';
+  ['f-unidade','f-empenho','f-sub','f-valor','f-credor','f-objeto','f-fonte','f-comp'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-edit-idx').value = -1;
+  document.getElementById('modal-nota').classList.add('open');
+}
+
+function editNota(idx) {
+  const n = notas[idx];
+  document.getElementById('modal-nota-title').textContent = 'Editar Nota';
+  document.getElementById('f-unidade').value = n.unidade;
+  document.getElementById('f-empenho').value = n.empenho;
+  document.getElementById('f-sub').value = n.sub;
+  document.getElementById('f-valor').value = n.valor;
+  document.getElementById('f-credor').value = n.credor;
+  document.getElementById('f-objeto').value = n.objeto;
+  document.getElementById('f-fonte').value = n.fonte;
+  document.getElementById('f-comp').value = n.competencia;
+  document.getElementById('f-dt').value = '';
+  document.getElementById('f-edit-idx').value = idx;
+  document.getElementById('modal-nota').classList.add('open');
+}
+
+function saveNota() {
+  const idx = parseInt(document.getElementById('f-edit-idx').value);
+  const nota = {
+    unidade: document.getElementById('f-unidade').value.trim(),
+    empenho: document.getElementById('f-empenho').value.trim(),
+    sub: document.getElementById('f-sub').value.trim(),
+    valor: parseFloat(document.getElementById('f-valor').value.replace(',','.')),
+    dtEntrada: document.getElementById('f-dt').value || new Date().toLocaleDateString('pt-BR'),
+    credor: document.getElementById('f-credor').value.trim(),
+    objeto: document.getElementById('f-objeto').value.trim(),
+    fonte: document.getElementById('f-fonte').value.trim(),
+    competencia: document.getElementById('f-comp').value.trim(),
+    status: 'ATIVO',
+    dtSaida: '', setor: '', motivo: '', cod: '', elemento: ''
+  };
+  if (!nota.credor || !nota.empenho) { toast('Preencha os campos obrigatórios', 'error'); return; }
+  if (idx >= 0) notas[idx] = {...notas[idx], ...nota};
+  else notas.unshift(nota);
+  save();
+  populateFilters();
+  renderAtivas();
+  renderAdminNotas();
+  closeModal('modal-nota');
+  toast('Nota salva com sucesso!', 'success');
+}
+
+function deleteNota(idx) {
+  if (!confirm('Excluir esta nota?')) return;
+  notas.splice(idx, 1);
+  save();
+  populateFilters();
+  renderAtivas();
+  renderAdminNotas();
+  toast('Nota excluída', 'info');
+}
+
+function importSampleData() {
+  if (!confirm('Isso irá reimportar os dados de amostra. Continuar?')) return;
+  notas = JSON.parse(JSON.stringify(INITIAL_DATA));
+  save();
+  populateFilters();
+  renderAtivas();
+  renderAdminNotas();
+  toast('Dados de amostra importados!', 'success');
+}
+
+// ══════════════════════════════════════════════
+// ADMIN USERS
+// ══════════════════════════════════════════════
+function renderUsers() {
+  const tbody = document.getElementById('tbody-users');
+  if (!tbody) return;
+  tbody.innerHTML = usuarios.map((u, i) => `
+    <tr>
+      <td><span class="mono">${u.login}</span></td>
+      <td>${u.nome}</td>
+      <td><span class="badge ${u.perfil==='admin'?'badge-orange':'badge-blue'}">${u.perfil==='admin'?'Admin':'Liberador'}</span></td>
+      <td>${u.criado}</td>
+      <td><span class="badge ${u.ativo?'badge-green':'badge-gray'}">${u.ativo?'Ativo':'Inativo'}</span></td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="toggleUser(${i})">${u.ativo?'Desativar':'Ativar'}</button>
+        ${u.login !== 'admin' ? `<button class="btn btn-danger btn-sm btn-icon" onclick="deleteUser(${i})" style="margin-left:4px">🗑️</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+function openAddUser() { document.getElementById('modal-user').classList.add('open'); }
+
+function saveUser() {
+  const u = {
+    login: document.getElementById('u-login').value.trim(),
+    nome: document.getElementById('u-nome').value.trim(),
+    senha: document.getElementById('u-senha').value,
+    perfil: document.getElementById('u-perfil').value,
+    criado: new Date().toLocaleDateString('pt-BR'),
+    ativo: true
+  };
+  if (!u.login || !u.senha) { toast('Preencha login e senha', 'error'); return; }
+  if (usuarios.find(x => x.login === u.login)) { toast('Login já existe', 'error'); return; }
+  usuarios.push(u);
+  save();
+  renderUsers();
+  closeModal('modal-user');
+  toast('Usuário cadastrado!', 'success');
+}
+
+function toggleUser(i) {
+  usuarios[i].ativo = !usuarios[i].ativo;
+  save();
+  renderUsers();
+}
+
+function deleteUser(i) {
+  if (!confirm('Excluir usuário?')) return;
+  usuarios.splice(i, 1);
+  save();
+  renderUsers();
+}
+
+// ══════════════════════════════════════════════
+// GOOGLE SHEETS INTEGRATION
+// ══════════════════════════════════════════════
+
+function getSheetsConfig() {
+  return {
+    id:      (localStorage.getItem('sheets_id')      || '').trim(),
+    tab:     (localStorage.getItem('sheets_tab')     || 'Página1').trim(),
+    key:     (localStorage.getItem('sheets_key')     || '').trim(),
+    webhook: (localStorage.getItem('sheets_webhook') || '').trim(),
+  };
+}
+function saveSheetsConfig() {
+  const setLS = (key, id) => { const el = document.getElementById(id); if(el) localStorage.setItem(key, el.value.trim()); };
+  setLS('sheets_id',      'sheets-id');
+  setLS('sheets_tab',     'sheets-tab');
+  setLS('sheets_key',     'sheets-key');
+  setLS('sheets_webhook', 'sheets-webhook');
+}
+function loadSheetsConfigUI() {
+  const c = getSheetsConfig();
+  const set = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
+  set('sheets-id',      c.id);
+  set('sheets-tab',     c.tab);
+  set('sheets-key',     c.key);
+  set('sheets-webhook', c.webhook);
+}
+
+// ── READ: puxa todas as linhas da planilha ───
+async function syncSheets() {
+  saveSheetsConfig();
+  const cfg = getSheetsConfig();
+  const statusEl = document.getElementById('sheets-status');
+
+  if (!cfg.id || !cfg.key) {
+    toast('Preencha ID da planilha e API Key antes de sincronizar', 'error');
+    if (statusEl) statusEl.innerHTML = '<span style="color:#dc2626">Preencha ID e API Key.</span>';
+    return;
+  }
+
+  toast('Buscando dados do Google Sheets…', 'info');
+  if (statusEl) statusEl.innerHTML = '<span style="color:#3b82f6">Buscando dados…</span>';
+
+  // Se webhook configurado, pode usar para leitura também
+  let fetchUrl, fetchOpts = {};
+  if (cfg.webhook) {
+    fetchUrl = `${cfg.webhook}?action=read&tab=${encodeURIComponent(cfg.tab)}`;
+  } else {
+    const range = encodeURIComponent(`${cfg.tab}!A2:O`);
+    fetchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.id}/values/${range}?key=${cfg.key}`;
+  }
+
+  try {
+    const res = await fetch(fetchUrl, fetchOpts);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const rows = data.values || [];
+
+    if (rows.length === 0) {
+      toast('Planilha vazia ou sem dados na aba configurada', 'error');
+      if (statusEl) statusEl.innerHTML = '<span style="color:#dc2626">Nenhuma linha encontrada.</span>';
+      return;
+    }
+
+    // Mapeia colunas A–O → campos internos
+    // Guarda _sheetRow para write-back (header=linha1, dados a partir da linha 2)
+    const novasNotas = rows.map((r, i) => ({
+      _sheetRow:   i + 2,
+      unidade:     r[0]  || '',
+      empenho:     r[1]  || '',
+      sub:         r[2]  || '',
+      valor:       parseFloat((r[3]||'0').replace(/[R$\s.]/g,'').replace(',','.')) || 0,
+      dtEntrada:   r[4]  || '',
+      credor:      r[5]  || '',
+      objeto:      r[6]  || '',
+      status:      (r[7] || 'ATIVO').toUpperCase(),
+      dtSaida:     r[8]  || '',
+      setor:       r[9]  || '',
+      motivo:      r[10] || '',
+      competencia: r[11] || '',
+      cod:         r[12] || '',
+      elemento:    r[13] || '',
+      fonte:       r[14] || '',
+    }));
+
+    notas = novasNotas;
+    save();
+    populateFilters();
+    renderAtivas();
+    renderAdminNotas();
+    updateStats();
+
+    const atv = notas.filter(n => n.status === 'ATIVO').length;
+    toast(`${rows.length} notas importadas — ${atv} ativas`, 'success');
+    if (statusEl) statusEl.innerHTML =
+      `<span style="color:var(--green-600)">Sincronizado em ${new Date().toLocaleTimeString('pt-BR')} — ${rows.length} notas (${atv} ativas).</span>`;
+
+  } catch (e) {
+    console.error(e);
+    toast(`Erro ao buscar planilha: ${e.message}`, 'error');
+    if (statusEl) statusEl.innerHTML = `<span style="color:#dc2626">${e.message}</span>`;
+  }
+}
+
+// ── WRITE: atualiza STATUS (col H) e DATA SAÍDA (col I) no Sheets ──
+// Estratégia dual:
+//   1. Se webhook (Apps Script) configurado → usa POST no webhook (recomendado, sem restrição de escrita)
+//   2. Fallback: tenta Sheets API v4 batchUpdate com API Key (só funciona se planilha for pública como Editor)
+async function updateSheetsRow(nota, statusValue, dataSaida) {
+  const cfg = getSheetsConfig();
+  const row = nota._sheetRow;
+  if (!row) return; // nota local, sem linha no Sheets
+
+  // Estratégia 1: Webhook Apps Script
+  if (cfg.webhook) {
+    try {
+      const res = await fetch(cfg.webhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updateStatus',
+          tab: cfg.tab,
+          row,
+          status: statusValue,
+          dataSaida
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.ok) return; // sucesso
+      console.warn('Webhook respondeu sem ok:', data);
+    } catch (e) {
+      console.warn('Webhook write failed, tentando API Key:', e.message);
+    }
+  }
+
+  // Estratégia 2: Sheets API v4 (requer planilha pública como Editor ou OAuth)
+  if (!cfg.id || !cfg.key) return;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.id}/values:batchUpdate?key=${cfg.key}`;
+  const body = {
+    valueInputOption: 'USER_ENTERED',
+    data: [
+      { range: `${cfg.tab}!H${row}`, values: [[statusValue]] },
+      { range: `${cfg.tab}!I${row}`, values: [[dataSaida]]   },
+    ]
+  };
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      console.warn('Sheets API write error:', err.error?.message);
+    }
+  } catch (e) {
+    console.warn('Sheets API write failed:', e.message);
+  }
+}
+
+// ── TEST CONNECTION ──────────────────────────
+async function testSheets() {
+  saveSheetsConfig();
+  const cfg = getSheetsConfig();
+  const el = document.getElementById('sheets-status');
+  if (!cfg.id || !cfg.key) {
+    if(el) el.innerHTML = '<span style="color:#dc2626">Preencha o ID e a API Key primeiro.</span>';
+    return;
+  }
+  if(el) el.innerHTML = '<span style="color:#3b82f6">Testando conexão…</span>';
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.id}?key=${cfg.key}&fields=properties.title`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+    if(el) el.innerHTML = `<span style="color:var(--green-600)">Conectado: <strong>${data.properties?.title}</strong></span>`;
+    toast('Conexão com Google Sheets OK!', 'success');
+  } catch(e) {
+    if(el) el.innerHTML = `<span style="color:#dc2626">${e.message}</span>`;
+    toast('Falha na conexão: ' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════
+function updateStats() {
+  const ativas = notas.filter(n => n.status === 'ATIVO');
+  const totalAtivo = ativas.reduce((s, n) => s + n.valor, 0);
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const hojeLib = historico.filter(h => h.dataLib === hoje);
+  const hojeVal = hojeLib.reduce((s, h) => s + h.valor, 0);
+  document.getElementById('stat-ativas').textContent = ativas.length;
+  document.getElementById('stat-valor-ativo').textContent = fmtVal(totalAtivo);
+  document.getElementById('stat-hoje').textContent = hojeLib.length;
+  document.getElementById('stat-hoje-val').textContent = fmtVal(hojeVal);
+}
+
+// ══════════════════════════════════════════════
+// CART PANEL TOGGLE
+// ══════════════════════════════════════════════
+function openCart() { document.getElementById('cart-panel').classList.add('open'); }
+function closeCart() { document.getElementById('cart-panel').classList.remove('open'); }
+
+// ══════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ══════════════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════════════
+function exportCSV() {
+  const h = ['Protocolo','Empenho','Sub/Emp','Credor','Valor','Fonte','Competência','Data Lib','Liberado Por'];
+  const rows = historico.map(h => [h.protocolo,h.empenho,h.sub,`"${h.credor}"`,h.valor.toFixed(2),`"${h.fonte}"`,h.competencia,h.dataLib,h.liberadoPor]);
+  const csv = [h.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `historico_liberacoes_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`;
+  a.click();
+  toast('CSV exportado com sucesso!', 'success');
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function fmtVal(v) {
+  return 'R$ ' + (v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// CHECK ALL
+function toggleAll(cb) {
+  document.querySelectorAll('.nota-check:not(:disabled)').forEach(c => {
+    c.checked = cb.checked;
+  });
+  document.getElementById('btn-add-selected').style.display = cb.checked ? 'inline-flex' : 'none';
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeCart();
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  }
+});
+</script>
+</body>
+</html>
