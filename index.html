@@ -1105,7 +1105,7 @@ input[type="checkbox"] {
             </div>
             <div class="field-group" style="margin-bottom:18px">
               <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">URL do Webhook <span style="font-weight:400;text-transform:none;letter-spacing:0">(escrita — Apps Script)</span></label>
-              <input type="text" id="sheets-webhook" placeholder="https://script.google.com/macros/s/…/exec" value="https://script.google.com/macros/s/AKfycbw6YX30idBu3s6D7jmUPm2-aaAKJSYTGVnDlnw4fHlZ2KUBdktYvlyxIHgZsw73pjqC6Q/exec"
+              <input type="text" id="sheets-webhook" placeholder="https://script.google.com/macros/s/…/exec" value="https://script.google.com/macros/s/AKfycbzVHCAXSvLK366pnHTdtM_drF5Ztyq6JDfgewi9KwJUTNd-fhqAFy2-dIvRcApHAyyNGw/exec"
                 style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:monospace">
               <div style="font-size:11px;color:var(--gray-400);margin-top:4px">Necessário para atualizar status para LIBERADO no Sheets. Veja o arquivo <strong>google-apps-script-webhook.js</strong>.</div>
             </div>
@@ -1311,7 +1311,7 @@ const USERS_DEFAULT = [
 // Pre-populate Sheets config defaults if not yet set
 if (!localStorage.getItem('sheets_id'))      localStorage.setItem('sheets_id',      '1wp7zIjk0uRCV9Ew6nMvTFlyjZSvuAVR3-ngBjBy4rnw');
 if (!localStorage.getItem('sheets_tab'))     localStorage.setItem('sheets_tab',     'Página1');
-if (!localStorage.getItem('sheets_webhook')) localStorage.setItem('sheets_webhook', 'https://script.google.com/macros/s/AKfycbw6YX30idBu3s6D7jmUPm2-aaAKJSYTGVnDlnw4fHlZ2KUBdktYvlyxIHgZsw73pjqC6Q/exec');
+if (!localStorage.getItem('sheets_webhook')) localStorage.setItem('sheets_webhook', 'https://script.google.com/macros/s/AKfycbzVHCAXSvLK366pnHTdtM_drF5Ztyq6JDfgewi9KwJUTNd-fhqAFy2-dIvRcApHAyyNGw/exec');
 
 let notas = JSON.parse(localStorage.getItem('notas') || 'null') || JSON.parse(JSON.stringify(INITIAL_DATA));
 let historico = JSON.parse(localStorage.getItem('historico') || '[]');
